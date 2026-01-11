@@ -8,7 +8,6 @@ namespace PortfolioAnalyticsApi.Services
     {
         private readonly BetaAnalyticsDataClient _client;
         private readonly string _propertyId;
-
         public GoogleAnalyticsService(IConfiguration configuration)
         {
             Console.WriteLine("GoogleAnalyticsService initialized.");

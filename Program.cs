@@ -14,9 +14,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-           policy   .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowAnyOrigin();
+           policy.AllowAnyOrigin()
+                 .AllowAnyHeader()
+                 .AllowAnyMethod();
+              
     });
 });
 
