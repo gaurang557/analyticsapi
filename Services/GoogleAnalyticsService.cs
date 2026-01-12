@@ -8,13 +8,16 @@ namespace PortfolioAnalyticsApi.Services
     {
         private readonly BetaAnalyticsDataClient _client;
         private readonly string _propertyId;
+        private readonly string? _propertyId2;
+
         public GoogleAnalyticsService(IConfiguration configuration)
         {
             Console.WriteLine("GoogleAnalyticsService initialized.");
             _propertyId = configuration["GoogleAnalytics:PropertyId"]
                 ?? throw new ArgumentNullException("PropertyId not configured");
-            // var credentialPath = configuration["GoogleAnalytics:CredentialPath"];
-            // var credentialJson = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS_JSON");
+
+            _propertyId2 = configuration["GoogleAnalytics:PropertyId2"];
+
             var b64 = Environment.GetEnvironmentVariable(
                 "GOOGLE_APPLICATION_CREDENTIALS_JSON_B64");
 
@@ -39,21 +42,7 @@ namespace PortfolioAnalyticsApi.Services
             }
             else
             {
-                // credentialJson = configuration["GoogleAnalytics:CredentialJson"];
-                // if (!string.IsNullOrEmpty(credentialJson))
-                // {
-                //     var credentialStream = new MemoryStream(Encoding.UTF8.GetBytes(credentialJson));
-                //     var credential = ServiceAccountCredential.FromServiceAccountData(credentialStream);
-                    
-                //     _client = new BetaAnalyticsDataClientBuilder
-                //     {
-                //         Credential = credential
-                //     }.Build();
-                // }
-                // else
-                // {
-                    _client = BetaAnalyticsDataClient.Create();
-                // }
+                _client = BetaAnalyticsDataClient.Create();
             }
         }
 
@@ -132,6 +121,62 @@ namespace PortfolioAnalyticsApi.Services
 
             return pageViews;
         }
+        public async Task<List<ApiHitData>> GetApiHitsAsync()
+        {
+            if (string.IsNullOrEmpty(_propertyId2))
+            {
+                throw new Exception("PropertyId2 not configured");
+            }
+
+            var request = new RunReportRequest
+            {
+                Property = $"properties/{_propertyId2}",
+                DateRanges = 
+                {
+                    new DateRange 
+                    { 
+                        StartDate = "7daysAgo", 
+                        EndDate = "today" 
+                    }
+                },
+                Dimensions = 
+                {
+                    new Dimension { Name = "date" }
+                },
+                Metrics = 
+                {
+                    new Metric { Name = "eventCount" }
+                },
+                DimensionFilter = new FilterExpression
+                {
+                    Filter = new Filter
+                    {
+                        FieldName = "eventName",
+                        StringFilter = new Filter.Types.StringFilter
+                        {
+                            MatchType = Filter.Types.StringFilter.Types.MatchType.Exact,
+                            Value = "api_hit"
+                        }
+                    }
+                }
+            };
+            var response = await _client.RunReportAsync(request);
+            var dto = new List<ApiHitData>();
+            foreach (var row in response.Rows)
+            {
+                var date = row.DimensionValues[0].Value;
+                var hitCount = long.Parse(row.MetricValues[0].Value);
+                
+                var dateTime = DateTime.ParseExact(date, "yyyyMMdd", null);
+                
+                dto.Add(new ApiHitData
+                {
+                    Date = dateTime.ToString("yyyy-MM-dd"),
+                    HitCount = hitCount
+                });
+            }
+            return dto;
+        }
     }
 
     public class AnalyticsData
@@ -147,5 +192,10 @@ namespace PortfolioAnalyticsApi.Services
         public string Day { get; set; } = string.Empty;
         public long Views { get; set; }
         public string Date { get; set; } = string.Empty;
+    }
+    public class ApiHitData
+    {
+        public string Date { get; set; } = string.Empty;
+        public long HitCount { get; set; }
     }
 }

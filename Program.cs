@@ -8,6 +8,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<GoogleAnalyticsService>();
+builder.Services.AddHttpClient();
+
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -32,7 +34,10 @@ if (app.Environment.IsDevelopment())
     // });
 }
 
-app.MapGet("/", () => "Portfolio Analytics API is running.");
+app.MapGet("/", async () => {
+    await GoogleAnalyticsTracker.TrackApiHitAsync();
+    return "Portfolio Analytics API is running.";
+});
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
