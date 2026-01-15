@@ -1,3 +1,4 @@
+using Google.Protobuf.WellKnownTypes;
 using PortfolioAnalyticsApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<GoogleAnalyticsService>();
+builder.Services.AddScoped<RedisService>();
 builder.Services.AddHttpClient();
 
 
@@ -34,9 +36,10 @@ if (app.Environment.IsDevelopment())
     // });
 }
 
-app.MapGet("/", async () => {
-    await GoogleAnalyticsTracker.TrackApiHitAsync();
-    return "Portfolio Analytics API is running.";
+app.MapGet("/", async (RedisService rc) => {
+    rc.SetCount();
+    var hits = await rc.GetCount();
+    return "Portfolio Analytics API is running. Number of hits to api" + hits.ToString();
 });
 app.UseSwagger();
 app.UseSwaggerUI(c =>

@@ -8,26 +8,26 @@ namespace PortfolioAnalyticsApi.Controllers
     public class AnalyticsController : ControllerBase
     {
         private readonly GoogleAnalyticsService _analyticsService;
-        // private readonly GoogleAnalyticsService _sendanalyticsService;
-        // private readonly GoogleAnalyticsTracker _sendanalyticsService;
+        private readonly RedisService _rs;
 
 
-        public AnalyticsController(GoogleAnalyticsService analyticsService)
+        public AnalyticsController(GoogleAnalyticsService analyticsService, RedisService redisService)
         {
             _analyticsService = analyticsService;
-            // _sendanalyticsService = sendanalyticsService;
+            _rs = redisService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAnalytics()
         {
             Console.WriteLine("sending api count hit");
-            await GoogleAnalyticsTracker.TrackApiHitAsync();
+            _rs.SetCount();
             try
             {
                 var stats = await _analyticsService.GetAnalyticsDataAsync();
                 var pageViews = await _analyticsService.GetWeeklyPageViewsAsync();
-                var apihitcount = await _analyticsService.GetApiHitsAsync();
+                // var apihitcount = await _analyticsService.GetApiHitsAsync();
+                var apihitcount = await _rs.GetApiHits();
 
                 return Ok(new
                 {
@@ -48,8 +48,6 @@ namespace PortfolioAnalyticsApi.Controllers
         [HttpGet("realtime")]
         public async Task<IActionResult> GetRealtimeData()
         {
-            Console.WriteLine("sending api count hit");
-            await GoogleAnalyticsTracker.TrackApiHitAsync();
             // Implement real-time data if needed
             return Ok(new { message = "Real-time data endpoint" });
         }
@@ -57,8 +55,7 @@ namespace PortfolioAnalyticsApi.Controllers
         [HttpGet("get_number_of_api_hits")]
         public async Task<IActionResult> GetApiHits()
         {
-            Console.WriteLine("sending api count hit");
-            var data = await _analyticsService.GetApiHitsAsync();
+            var data = await _rs.GetApiHits();
             // Implement real-time data if needed
             return Ok(data);
         }   
