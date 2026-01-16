@@ -21,7 +21,8 @@ namespace PortfolioAnalyticsApi.Controllers
         public async Task<IActionResult> GetAnalytics()
         {
             Console.WriteLine("sending api count hit");
-            await _rs.SetCount();
+            bool setCountSuccess = await _rs.SetCount();
+            Console.WriteLine("api set count success:" + setCountSuccess);
             try
             {
                 var stats = await _analyticsService.GetAnalyticsDataAsync();

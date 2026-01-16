@@ -36,19 +36,21 @@ namespace PortfolioAnalyticsApi.Services{
             }
             return "0";
         }
-        public async Task<string> SetCount()
+        public async Task<bool> SetCount()
         {
             string current_date = GetDate().ToString();
+            Console.WriteLine("SetCount: current date in redis service:" + current_date);
             string currentCount = db.StringGet(current_date);
             if(currentCount != null)
             {
                 int count = Int32.Parse(currentCount);
+                Console.WriteLine("SetCount: current count:" + count.ToString());
                 count += 1;
                 db.StringSet(current_date, count.ToString());
-                return db.StringGet(current_date);
+                return db.StringGet(current_date) == count.ToString() ? true : false;
             }
             db.StringSet(current_date, "0");
-            return "0";
+            return true;
         }
         // public async Task<List<(string Date, int Count)>> GetApiHits()
         public async Task<string> GetApiHits()
