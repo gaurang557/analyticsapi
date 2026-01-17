@@ -9,20 +9,22 @@ namespace PortfolioAnalyticsApi.Controllers
     {
         private readonly GoogleAnalyticsService _analyticsService;
         private readonly RedisService _rs;
+        private readonly ILogger<AnalyticsController> _logger;
 
 
-        public AnalyticsController(GoogleAnalyticsService analyticsService, RedisService redisService)
+        public AnalyticsController(GoogleAnalyticsService analyticsService, RedisService redisService, ILogger<AnalyticsController> logger)
         {
             _analyticsService = analyticsService;
+            _logger = logger;
             _rs = redisService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAnalytics()
         {
-            Console.WriteLine("sending api count hit");
+            _logger.LogInformation("sending api count hit");
             bool setCountSuccess = await _rs.SetCount();
-            Console.WriteLine("api set count success:" + setCountSuccess);
+            _logger.LogInformation("api set count success:" + setCountSuccess);
             try
             {
                 var stats = await _analyticsService.GetAnalyticsDataAsync();

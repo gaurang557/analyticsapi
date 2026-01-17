@@ -36,10 +36,14 @@ if (app.Environment.IsDevelopment())
     // });
 }
 
+ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+
 app.MapGet("/", async (RedisService rc) => {
-    rc.SetCount();
+    await rc.SetCount();
+    logger.LogInformation("Incremented API hit count");
     var hits = await rc.GetCount();
-    return "Portfolio Analytics API is running. Number of hits to api" + hits.ToString();
+    return "Portfolio Analytics API is running";
 });
 app.UseSwagger();
 app.UseSwaggerUI(c =>
