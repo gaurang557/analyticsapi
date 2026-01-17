@@ -51,8 +51,8 @@ namespace PortfolioAnalyticsApi.Controllers
         [HttpGet("realtime")]
         public async Task<IActionResult> GetRealtimeData()
         {
-            // Implement real-time data if needed
-            return Ok(new { message = "Real-time data endpoint" });
+            Tuple<DateOnly, string> dateTuple = RedisService.GetDate();
+            return Ok(new { message = "Real-time data endpoint" + dateTuple.Item2 });
         }
 
         [HttpGet("get_number_of_api_hits")]

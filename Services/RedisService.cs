@@ -40,7 +40,8 @@ namespace PortfolioAnalyticsApi.Services{
         }
         public async Task<bool> SetCount()
         {
-            string current_date = GetDate().ToString();
+            Tuple<DateOnly, string> dateTuple = GetDate();
+            string current_date = dateTuple.Item2;
             _logger.LogInformation("SetCount: current date in redis service:" + current_date);
             string currentCount = db.StringGet(current_date);
             if(currentCount != null)
@@ -60,10 +61,10 @@ namespace PortfolioAnalyticsApi.Services{
         {
             var result = new List<Tuple<string, int>>();
             var keys = new RedisKey[7];
-            DateOnly indiaToday = GetDate();
+            Tuple<DateOnly, string> indiaToday = GetDate();
             for (int i = 0; i < 7; i++)
             {
-                DateOnly date = indiaToday.AddDays(-i);
+                DateOnly date = indiaToday.Item1.AddDays(-i);
                 string dateKeyPart = date.ToString("M/dd/yyyy");
                 keys[i] = dateKeyPart;
             }
@@ -79,7 +80,11 @@ namespace PortfolioAnalyticsApi.Services{
             result.Reverse();
             return JsonSerializer.Serialize(result);
         }
-        private DateOnly GetDate()
+        public void setkeyval(string key, string value)
+        {
+            db.StringSet(key, value);
+        }
+        public static Tuple<DateOnly, string> GetDate()
         {
             // return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000;
             DateTimeOffset istTime =
@@ -87,7 +92,7 @@ namespace PortfolioAnalyticsApi.Services{
                     DateTimeOffset.Now,
                     "India Standard Time");
             DateOnly dateOnly = DateOnly.FromDateTime(istTime.DateTime);
-            return dateOnly;
+            return new Tuple<DateOnly, string>(dateOnly, istTime.ToString());
         }
     }
 }
