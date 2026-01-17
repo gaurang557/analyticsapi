@@ -42,7 +42,7 @@
 //                     DateTimeOffset.Now,
 //                     "India Standard Time");
 //             DateOnly dateOnly = DateOnly.FromDateTime(istTime.DateTime);
-//             return dateOnly.ToString("M/dd/yyyy");
+//             return dateOnly.ToString();
 //         }
 //     }
         

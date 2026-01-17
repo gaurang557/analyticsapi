@@ -65,7 +65,7 @@ namespace PortfolioAnalyticsApi.Services{
             for (int i = 0; i < 7; i++)
             {
                 DateOnly date = indiaToday.Item1.AddDays(-i);
-                string dateKeyPart = date.ToString("M/dd/yyyy");
+                string dateKeyPart = date.ToString();
                 keys[i] = dateKeyPart;
             }
             RedisValue[] response = await db.StringGetAsync(keys);
