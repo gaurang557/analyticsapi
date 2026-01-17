@@ -16,15 +16,10 @@
 //         }
 
 //         [HttpPut("putkeyval")]
-//         public void PutData(string key, string value)
+//         public void PutData(string key, string value="0")
 //         {
 //             rc.setkeyval( key, value);
-//         }
-//         [HttpGet]
-//         public async Task<string> Get()
-//         {
-//             string g = await rc.GetCount();
-//             return g;
+//             // rc.setExpiration( key);
 //         }
 
 //         [HttpGet("getkey")]
@@ -32,16 +27,10 @@
 //         {
 //             return await rc.GetCountbyKey(key);
 //         }
-
-//         [HttpGet("time")]
-//         public string GetDate()
+//         [HttpGet("delkey")]
+//         public void DelData(RedisKey[] keys)
 //         {
-//             DateTimeOffset istTime =
-//                 TimeZoneInfo.ConvertTimeBySystemTimeZoneId(
-//                     DateTimeOffset.Now,
-//                     "India Standard Time");
-//             DateOnly dateOnly = DateOnly.FromDateTime(istTime.DateTime);
-//             return dateOnly.ToString();
+//             rc.DeleteKey(keys);
 //         }
 //     }
         

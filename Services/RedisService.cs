@@ -50,9 +50,12 @@ namespace PortfolioAnalyticsApi.Services{
                 _logger.LogInformation("SetCount: current count:" + count.ToString());
                 count += 1;
                 db.StringSet(current_date, count.ToString());
-                return db.StringGet(current_date) == count.ToString() ? true : false;
             }
-            db.StringSet(current_date, "0");
+            else
+            {
+                db.StringSet(current_date, "0");
+            }
+            setExpiration(current_date);
             return true;
         }
         // public async Task<List<(string Date, int Count)>> GetApiHits()
@@ -84,6 +87,14 @@ namespace PortfolioAnalyticsApi.Services{
         public void setkeyval(string key, string value)
         {
             db.StringSet(key, value);
+        }
+        public void setExpiration(string key)
+        {
+            db.KeyExpire(key, TimeSpan.FromDays(7));
+        }
+        public void DeleteKey(RedisKey[] keys)
+        {
+            db.KeyDeleteAsync(keys);
         }
         public static Tuple<DateOnly, string> GetDate()
         {
