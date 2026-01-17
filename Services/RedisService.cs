@@ -41,7 +41,7 @@ namespace PortfolioAnalyticsApi.Services{
         public async Task<bool> SetCount()
         {
             Tuple<DateOnly, string> dateTuple = GetDate();
-            string current_date = dateTuple.Item2;
+            string current_date = dateTuple.Item1.ToString("MM/dd/yyyy");
             _logger.LogInformation("SetCount: current date in redis service:" + current_date);
             string currentCount = db.StringGet(current_date);
             if(currentCount != null)
@@ -62,10 +62,11 @@ namespace PortfolioAnalyticsApi.Services{
             var result = new List<Tuple<string, int>>();
             var keys = new RedisKey[7];
             Tuple<DateOnly, string> indiaToday = GetDate();
+            var todayDate = indiaToday.Item1;
             for (int i = 0; i < 7; i++)
             {
-                DateOnly date = indiaToday.Item1.AddDays(-i);
-                string dateKeyPart = date.ToString();
+                DateOnly date = todayDate.AddDays(-i);
+                string dateKeyPart = date.ToString("MM/dd/yyyy");
                 keys[i] = dateKeyPart;
             }
             RedisValue[] response = await db.StringGetAsync(keys);
