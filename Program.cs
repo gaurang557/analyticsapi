@@ -1,5 +1,8 @@
 using Google.Protobuf.WellKnownTypes;
 using PortfolioAnalyticsApi.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +15,22 @@ builder.Services.AddSingleton<GoogleAnalyticsService>();
 builder.Services.AddScoped<RedisService>();
 builder.Services.AddHttpClient();
 
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = Environment.GetEnvironmentVariable("authority");
+        options.Audience = Environment.GetEnvironmentVariable("audience");
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true // false is easier for dev
+        };
+    });
+
+
+builder.Services.AddAuthorization();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -53,6 +72,7 @@ app.UseSwaggerUI(c =>
 });
 app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
