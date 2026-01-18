@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using PortfolioAnalyticsApi.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PortfolioAnalyticsApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AnalyticsController : ControllerBase
     {
         private readonly GoogleAnalyticsService _analyticsService;
@@ -22,7 +24,7 @@ namespace PortfolioAnalyticsApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAnalytics()
         {
-            _logger.LogInformation("sending api count hit");
+            _logger.LogInformation("Get analytics api hitted");
             bool setCountSuccess = await _rs.SetCount();
             _logger.LogInformation("api set count success:" + setCountSuccess);
             try
@@ -51,6 +53,7 @@ namespace PortfolioAnalyticsApi.Controllers
         [HttpGet("realtime")]
         public async Task<IActionResult> GetRealtimeData()
         {
+            _logger.LogInformation("realtime api hitted");
             Tuple<DateOnly, string> dateTuple = RedisService.GetDate();
             return Ok(new { message = "Real-time data endpoint" + dateTuple.Item2 });
         }

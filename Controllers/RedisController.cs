@@ -1,12 +1,13 @@
 // using Microsoft.AspNetCore.Components.Endpoints;
 // using Microsoft.AspNetCore.Mvc;
 // using PortfolioAnalyticsApi.Services;
-// using StackExchange.Redis;
+// using Microsoft.AspNetCore.Authorization;
 
 // namespace PortfolioAnalyticsApi.Controllers
 // {
 //     [ApiController]
 //     [Route("api/[controller]")]
+//     [Authorize]
 //     public class RedisController : ControllerBase
 //     {
 //         RedisService rc;
@@ -14,7 +15,6 @@
 //         {
 //             this.rc = rc;
 //         }
-
 //         [HttpPut("putkeyval")]
 //         public void PutData(string key, string value)
 //         {
