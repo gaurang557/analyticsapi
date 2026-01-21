@@ -6,7 +6,6 @@ namespace PortfolioAnalyticsApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class HealthController : ControllerBase
     {
         [HttpGet]
