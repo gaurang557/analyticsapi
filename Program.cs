@@ -43,14 +43,14 @@ builder.Services
 
 builder.Services.AddRateLimiter(options =>
 {
+    
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
     // Fixed window limiter - allows X requests per time window
     options.AddPolicy("fixed", context =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            // partitionKey: context.Request.Headers.Host.ToString(),
-            // partitionKey: context.User.Identity?.Name ?? "anonymous",
-            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+        RateLimitPartition.GetFixedWindowLimiter( 
+            partitionKey: context.Request.Headers["X-Forwarded-For"].FirstOrDefault() ?? 
+            context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
             factory: _ => new FixedWindowRateLimiterOptions
     {
         PermitLimit = 3,
