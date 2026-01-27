@@ -24,6 +24,8 @@ namespace PortfolioAnalyticsApi.Services
             if (string.IsNullOrWhiteSpace(b64))
             {
                 throw new Exception("Missing Google credentials");
+                // _client = BetaAnalyticsDataClient.Create();
+                // return;
             }
 
             var credentialJson = Encoding.UTF8.GetString(

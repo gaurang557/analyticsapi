@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PortfolioAnalyticsApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace PortfolioAnalyticsApi.Controllers
 {
@@ -13,7 +14,7 @@ namespace PortfolioAnalyticsApi.Controllers
         private readonly RedisService _rs;
         private readonly ILogger<AnalyticsController> _logger;
 
-
+        // public AnalyticsController(RedisService redisService, ILogger<AnalyticsController> logger)
         public AnalyticsController(GoogleAnalyticsService analyticsService, RedisService redisService, ILogger<AnalyticsController> logger)
         {
             _analyticsService = analyticsService;
@@ -22,8 +23,11 @@ namespace PortfolioAnalyticsApi.Controllers
         }
 
         [HttpGet]
+        [EnableRateLimiting("fixed")]
         public async Task<IActionResult> GetAnalytics()
         {
+            // Console.WriteLine("Get analytics api hitted");
+            // return Ok(new {status = "success"});
             _logger.LogInformation("Get analytics api hitted");
             bool setCountSuccess = await _rs.SetCount();
             _logger.LogInformation("api set count success:" + setCountSuccess);

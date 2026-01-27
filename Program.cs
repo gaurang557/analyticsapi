@@ -2,7 +2,8 @@ using Google.Protobuf.WellKnownTypes;
 using PortfolioAnalyticsApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,9 +26,37 @@ builder.Services
         {
             ValidateIssuer = true,
             ValidateAudience = true,
-            ValidateLifetime = true // false is easier for dev
+            ValidateLifetime = true,// false is easier for dev
+            ClockSkew = TimeSpan.FromMinutes(5)
         };
     });
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Fixed window limiter - allows X requests per time window
+    options.AddPolicy("fixed", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            // partitionKey: context.Request.Headers.Host.ToString(),
+            // partitionKey: context.User.Identity?.Name ?? "anonymous",
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+    {
+        PermitLimit = 3,
+        Window = TimeSpan.FromMinutes(1),
+        // QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+        QueueLimit = 0
+    }));
+    
+    // Or sliding window - smoother distribution
+    options.AddSlidingWindowLimiter("sliding", opt =>
+    {
+        opt.PermitLimit = 10;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.SegmentsPerWindow = 6;
+    });
+});
 
 
 builder.Services.AddAuthorization();
@@ -49,10 +78,6 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    // app.UseSwaggerUI(options =>
-    // {
-    //     options.SwaggerEndpoint("/openapi/v1.json", "Portfolio Analytics API");
-    // });
 }
 
 ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
@@ -74,6 +99,13 @@ app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
+app.Use(async (context, next) =>
+{
+    var user = context.User;
+    logger.LogInformation($"IpAddress: { context.Connection.RemoteIpAddress?.ToString() ?? "(null)"}");
+    await next();
+});
+app.UseRateLimiter();
 app.MapControllers();
 
 app.Run();
