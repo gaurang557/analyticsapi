@@ -12,7 +12,6 @@ namespace PortfolioAnalyticsApi.Services
 
         public GoogleAnalyticsService(IConfiguration configuration)
         {
-            Console.WriteLine("GoogleAnalyticsService initialized.");
             _propertyId = configuration["GoogleAnalytics:PropertyId"]
                 ?? throw new ArgumentNullException("PropertyId not configured");
 
@@ -32,7 +31,6 @@ namespace PortfolioAnalyticsApi.Services
                 Convert.FromBase64String(b64));
             if (!string.IsNullOrEmpty(credentialJson))
             {
-                Console.WriteLine("Using credential from environment variable.");
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(credentialJson));
 
                 var credential = ServiceAccountCredential.FromServiceAccountData(stream);

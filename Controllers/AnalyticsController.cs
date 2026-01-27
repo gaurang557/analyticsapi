@@ -26,11 +26,7 @@ namespace PortfolioAnalyticsApi.Controllers
         [EnableRateLimiting("fixed")]
         public async Task<IActionResult> GetAnalytics()
         {
-            // Console.WriteLine("Get analytics api hitted");
-            // return Ok(new {status = "success"});
-            _logger.LogInformation("Get analytics api hitted");
             bool setCountSuccess = await _rs.SetCount();
-            _logger.LogInformation("api set count success:" + setCountSuccess);
             try
             {
                 var stats = await _analyticsService.GetAnalyticsDataAsync();

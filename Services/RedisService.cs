@@ -5,10 +5,10 @@ namespace PortfolioAnalyticsApi.Services{
     public class RedisService
     {
         private IDatabase db;
-        private readonly ILogger<RedisService> _logger;
-        public RedisService(ILogger<RedisService> logger)
+        // private readonly ILogger<RedisService> _logger;
+        public RedisService()
         {
-            _logger = logger;
+            // _logger = logger;
             var muxer = ConnectionMultiplexer.Connect(
                 new ConfigurationOptions{
                     EndPoints= { {"redis-15231.c56.east-us.azure.cloud.redislabs.com", 15231} },
@@ -42,12 +42,10 @@ namespace PortfolioAnalyticsApi.Services{
         {
             Tuple<DateOnly, string> dateTuple = GetDate();
             string current_date = dateTuple.Item1.ToString("MM/dd/yyyy");
-            _logger.LogInformation("SetCount: current date in redis service:" + current_date);
             string currentCount = db.StringGet(current_date);
             if(currentCount != null)
             {
                 int count = Int32.Parse(currentCount);
-                _logger.LogInformation("SetCount: current count:" + count.ToString());
                 count += 1;
                 db.StringSet(current_date, count.ToString());
             }

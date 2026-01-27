@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +16,16 @@ builder.Services.AddOpenApi();
 builder.Services.AddSingleton<GoogleAnalyticsService>();
 builder.Services.AddScoped<RedisService>();
 builder.Services.AddHttpClient();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto;
 
+    // Trust all proxy networks (required for Render / cloud platforms)
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -48,14 +58,6 @@ builder.Services.AddRateLimiter(options =>
         // QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
         QueueLimit = 0
     }));
-    
-    // Or sliding window - smoother distribution
-    options.AddSlidingWindowLimiter("sliding", opt =>
-    {
-        opt.PermitLimit = 10;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.SegmentsPerWindow = 6;
-    });
 });
 
 
@@ -95,6 +97,7 @@ app.UseSwaggerUI(c =>
     c.DocumentTitle = "My API – Demo";
     c.RoutePrefix = "swagger";
 });
+app.UseForwardedHeaders();
 app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");
 app.UseAuthentication();
@@ -102,7 +105,11 @@ app.UseAuthorization();
 app.Use(async (context, next) =>
 {
     var user = context.User;
-    logger.LogInformation($"IpAddress: { context.Connection.RemoteIpAddress?.ToString() ?? "(null)"}");
+    logger.LogInformation(
+    "RemoteIp: {RemoteIp} | XFF: {XFF}",
+    context.Connection.RemoteIpAddress,
+    context.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+);
     await next();
 });
 app.UseRateLimiter();
