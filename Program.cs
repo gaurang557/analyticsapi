@@ -53,7 +53,7 @@ builder.Services.AddRateLimiter(options =>
             context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
             factory: _ => new FixedWindowRateLimiterOptions
     {
-        PermitLimit = 3,
+        PermitLimit = 10,
         Window = TimeSpan.FromMinutes(1),
         // QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
         QueueLimit = 0
