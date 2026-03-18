@@ -7,7 +7,7 @@
 // {
 //     [ApiController]
 //     [Route("api/[controller]")]
-//     [Authorize]
+//     // [Authorize]
 //     public class RedisController : ControllerBase
 //     {
 //         RedisService rc;
@@ -27,11 +27,11 @@
 //         {
 //             return await rc.GetCountbyKey(key);
 //         }
-//         [HttpGet("delkey")]
-//         public void DelData(RedisKey[] keys)
-//         {
-//             rc.DeleteKey(keys);
-//         }
+//         // [HttpGet("delkey")]
+//         // public void DelData(RedisKey[] keys)
+//         // {
+//         //     rc.DeleteKey(keys);
+//         // }
 //     }
         
 // }

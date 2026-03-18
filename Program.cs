@@ -15,6 +15,20 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<GoogleAnalyticsService>();
 builder.Services.AddScoped<RedisService>();
+
+var redisConfig = new StackExchange.Redis.ConfigurationOptions
+{
+    EndPoints = { "redis-15231.c56.east-us.azure.cloud.redislabs.com:15231" },
+    User = "default",
+    Password = Environment.GetEnvironmentVariable("REDIS_PASSWORD"),
+    AbortOnConnectFail = false,
+    ConnectTimeout = 10000
+};
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.ConfigurationOptions = redisConfig;
+});
+
 builder.Services.AddHttpClient();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -85,10 +99,7 @@ if (app.Environment.IsDevelopment())
 ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
 
 
-app.MapGet("/", async (RedisService rc) => {
-    await rc.SetCount();
-    logger.LogInformation("Incremented API hit count");
-    var hits = await rc.GetCount();
+app.MapGet("/", async () => {
     return "Portfolio Analytics API is running";
 });
 app.UseSwagger();

@@ -8,14 +8,15 @@ namespace PortfolioAnalyticsApi.Services{
         // private readonly ILogger<RedisService> _logger;
         public RedisService()
         {
-            // _logger = logger;
-            var muxer = ConnectionMultiplexer.Connect(
-                new ConfigurationOptions{
-                    EndPoints= { {"redis-15231.c56.east-us.azure.cloud.redislabs.com", 15231} },
-                    User="default",
-                    Password=Environment.GetEnvironmentVariable("REDIS_PASSWORD")
-                }
-            );
+            var redisConfig = new StackExchange.Redis.ConfigurationOptions
+            {
+                EndPoints = { "redis-15231.c56.east-us.azure.cloud.redislabs.com:15231" },
+                User = "default",
+                Password = Environment.GetEnvironmentVariable("REDIS_PASSWORD"),
+                ConnectTimeout = 10000
+            };
+            var muxer = ConnectionMultiplexer.Connect(redisConfig);
+            
             db = muxer.GetDatabase();
         }
         public async Task<string> GetCount()

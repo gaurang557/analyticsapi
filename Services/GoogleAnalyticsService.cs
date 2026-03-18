@@ -1,5 +1,9 @@
 using Google.Analytics.Data.V1Beta;
 using Google.Apis.Auth.OAuth2;
+using Microsoft.VisualBasic;
+using Microsoft.Extensions.Caching.Distributed;
+// using Newtonsoft.Json;
+using System.Text.Json;
 using System.Text;
 
 namespace PortfolioAnalyticsApi.Services
@@ -9,9 +13,15 @@ namespace PortfolioAnalyticsApi.Services
         private readonly BetaAnalyticsDataClient _client;
         private readonly string _propertyId;
         private readonly string? _propertyId2;
+        private readonly IDistributedCache _rs;
+        private readonly string cachekey;
 
-        public GoogleAnalyticsService(IConfiguration configuration)
+
+        public GoogleAnalyticsService(IConfiguration configuration, IDistributedCache redisService)
         {
+            _rs = redisService;
+            cachekey = configuration["CacheKey"]
+                ?? throw new ArgumentNullException("CacheKey not configured");
             _propertyId = configuration["GoogleAnalytics:PropertyId"]
                 ?? throw new ArgumentNullException("PropertyId not configured");
 
@@ -48,6 +58,23 @@ namespace PortfolioAnalyticsApi.Services
 
         public async Task<AnalyticsData> GetAnalyticsDataAsync()
         {
+            var cachedData = await _rs.GetStringAsync(cachekey);
+            if (!string.IsNullOrWhiteSpace(cachedData))
+            {
+                Console.WriteLine("going in cache");
+                try
+                {
+                    var result = JsonSerializer.Deserialize<AnalyticsData>(cachedData);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+                catch (JsonException)
+                {
+                    Console.WriteLine("Cache miss or deserialization failed, fetching from Google Analytics");
+                }
+            }
             var request = new RunReportRequest
             {
                 Property = $"properties/{_propertyId}",
@@ -79,14 +106,25 @@ namespace PortfolioAnalyticsApi.Services
             var avgDuration = response.Rows.Count > 0 
                 ? totalDuration / response.Rows.Count 
                 : 0;
-
-            return new AnalyticsData
+            var newAnalytics = new AnalyticsData
             {
                 TotalViews = totalViews,
                 TotalUsers = totalUsers,
                 Sessions = totalSessions,
                 AvgDuration = (int)avgDuration
             };
+            var json = JsonSerializer.Serialize(newAnalytics);
+            var options = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+            };
+
+            await _rs.SetStringAsync(
+                cachekey,
+                json,
+                options
+            );
+            return newAnalytics;
         }
 
         public async Task<List<PageViewData>> GetWeeklyPageViewsAsync()
