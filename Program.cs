@@ -63,8 +63,9 @@ builder.Services.AddRateLimiter(options =>
     // Fixed window limiter - allows X requests per time window
     options.AddPolicy("fixed", context =>
         RateLimitPartition.GetFixedWindowLimiter( 
-            partitionKey: context.Request.Headers["X-Forwarded-For"].FirstOrDefault() ?? 
-            context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            // partitionKey: context.Request.Headers["X-Forwarded-For"].FirstOrDefault() ?? 
+            // context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            partitionKey: $"{context.Request.Headers["X-Forwarded-For"].FirstOrDefault()}-{context.Request.Headers.UserAgent}",
             factory: _ => new FixedWindowRateLimiterOptions
     {
         PermitLimit = 10,
